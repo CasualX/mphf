@@ -1,0 +1,17 @@
+[package]
+name = "mphf"
+version = "0.1.0"
+edition = "2018"
+license = "MIT"
+
+authors = ["Casper <CasualX@users.noreply.github.com>"]
+description = "An exercise in implementing minimally perfect hash functions."
+repository = "https://github.com/CasualX/mphf"
+readme = "readme.md"
+
+[features]
+default = ["codegen"]
+codegen = ["format_xml"]
+
+[dependencies]
+format_xml = { version = "0.1", optional = true }
