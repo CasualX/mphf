@@ -159,7 +159,7 @@ impl<T: Copy, const N: usize, const M: usize> StaticMapBuilder<T, N, M> {
 				}
 
 				seed += 1;
-				assert!(seed < u8::MAX, "Failed to find valid seed for StaticMap, try using more buckets");
+				assert!(seed < u8::MAX, "Failed to find valid seed, try using more buckets");
 			};
 
 			seeds[max_bucket] = found_seed;
@@ -173,6 +173,8 @@ impl<T: Copy, const N: usize, const M: usize> StaticMapBuilder<T, N, M> {
 	}
 }
 impl<T, const N: usize, const M: usize> StaticMapBuilder<T, N, M> {
+	/// Returns a type-erased reference to the built static map.
+	#[inline]
 	pub const fn as_ref(&'static self) -> StaticMap<T> {
 		StaticMap {
 			keys: StaticKeys {
@@ -181,6 +183,28 @@ impl<T, const N: usize, const M: usize> StaticMapBuilder<T, N, M> {
 			},
 			values: &self.values,
 		}
+	}
+	/// Returns the list of keys in the map.
+	#[inline]
+	pub const fn keys(&self) -> &[&'static str; N] {
+		&self.keys
+	}
+	/// Returns the list of values in the map.
+	#[inline]
+	pub const fn values(&self) -> &[T; N] {
+		&self.values
+	}
+	/// Gets the value associated with the given key, or `None` if not found.
+	#[inline]
+	pub const fn get(&'static self, key: &str) -> Option<&'static T> {
+		let index = StaticKeys {
+			seeds: &self.seeds,
+			keys: &self.keys,
+		}.get_index(key);
+		if index >= self.values.len() {
+			return None;
+		}
+		Some(&self.values[index])
 	}
 }
 
@@ -230,7 +254,7 @@ struct StaticKeys {
 
 impl StaticKeys {
 	#[inline(never)]
-	fn get_index(&self, key: &str) -> usize {
+	const fn get_index(&self, key: &str) -> usize {
 		if self.seeds.len() == 0 || self.keys.len() == 0 {
 			return usize::MAX;
 		}
@@ -271,12 +295,12 @@ pub struct StaticMap<T: 'static> {
 impl<T> StaticMap<T> {
 	/// Returns the list of keys in the map.
 	#[inline]
-	pub fn keys(&self) -> &'static [&'static str] {
+	pub const fn keys(&self) -> &'static [&'static str] {
 		self.keys.keys
 	}
 	/// Returns the list of values in the map.
 	#[inline]
-	pub fn values(&self) -> &'static [T] {
+	pub const fn values(&self) -> &'static [T] {
 		self.values
 	}
 	/// Gets the value associated with the given key, or `None` if not found.
